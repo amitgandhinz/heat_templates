@@ -18,8 +18,14 @@ X-Auth-User: {{username}}
       "image": "Ubuntu 14.04 LTS (Trusty Tahr)",
       "flavor": "1 GB Performance",
       "web_nodes_count": 2,
-      "mongo_nodes_count" 3
-      
+      "mongo_nodes_count" 3,
+      "admin_password": "test",
+      "admin_tenant_name": "admin name",
+      "admin_user": "admin user",
+      "admin_keystone_uri": "https://admin.keystone.com",
+      "keystone_uri": "https://keystone.com",
+      "keystone_version": "v2.0",
+      "token_cache_time": 3600
     }
 }
 ```
