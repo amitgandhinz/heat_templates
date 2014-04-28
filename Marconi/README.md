@@ -1,6 +1,7 @@
 Example Usage
 =============
 
+```
 POST /v1/{{project_id}}/stacks HTTP/1.1
 Host: ord.orchestration.api.rackspacecloud.com
 Content-Type: application/json; charset=utf-8
@@ -21,3 +22,4 @@ X-Auth-User: {{username}}
       
     }
 }
+```
