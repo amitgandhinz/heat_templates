@@ -13,7 +13,7 @@ X-Auth-User: {{username}}
 {
     "stack_name": "marconi",
     "timeout_mins": 15,
-    "template_url": "https://raw.githubusercontent.com/amitgandhinz/heat_templates/Marconi/master/README.md",
+    "template_url": "https://raw.githubusercontent.com/amitgandhinz/heat_templates/master/Marconi/marconi.yaml",
     "parameters" : {
       "image": "Ubuntu 14.04 LTS (Trusty Tahr)",
       "flavor": "1 GB Performance",
