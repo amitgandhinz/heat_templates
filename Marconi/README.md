@@ -1,8 +1,3 @@
-heat_templates
-==============
-
-A collection of Openstack Heat Templates
-
 Example Usage
 =============
 
@@ -17,7 +12,7 @@ X-Auth-User: {{username}}
 {
     "stack_name": "marconi",
     "timeout_mins": 15,
-    "template_url": "https://gist.githubusercontent.com/amitgandhinz/11265123/raw",
+    "template_url": "https://raw.githubusercontent.com/amitgandhinz/heat_templates/Marconi/master/README.md",
     "parameters" : {
       "image": "Ubuntu 14.04 LTS (Trusty Tahr)",
       "flavor": "1 GB Performance",

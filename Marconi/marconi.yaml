@@ -1,0 +1,223 @@
+heat_template_version: 2013-05-23
+ 
+description: HOT template to deploy Marconi infrastructure
+ 
+parameters:
+  image:
+    type: string
+    description: Name of image to use for servers
+  flavor:
+    type: string
+    description: Flavor to use for servers
+  web_nodes_count:
+    type: number
+    description: Number of web heads to use
+  mongo_nodes_count:
+    type: number
+    description: Number of mongo nodes to use
+  
+resources:
+  mongo_nodes:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: mongo_nodes_count }
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          flavor: { get_param: flavor }
+          image: { get_param: image } 
+          name: Marconi Database Node
+          user_data_format: RAW
+          config_drive: "true"
+          user_data: |
+            #!/bin/bash
+            export DEBIAN_FRONTEND=noninteractive
+            
+            # install firewall rules (iptables etc needed)
+            # TODO
+            
+            # install mongodb
+            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+            echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
+            
+            sudo apt-get update
+            sudo apt-get -y install mongodb-org
+            
+            mkdir /etc/sysconfig
+            
+            echo "logpath=/var/log/mongo/mongod.log
+            logappend=true
+            fork = true
+            dbpath=/var/lib/mongo
+            pidfilepath = /var/run/mongodb/mongod.pid
+            replSet = catalog
+            nojournal = true
+            profile = 1
+            slowms = 200
+            oplogSize = 2048" > /etc/sysconfig/mongod
+            
+            # run mongo service
+            sudo service mongod start
+  web_nodes:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: web_nodes_count }
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          flavor: { get_param: flavor }
+          image: { get_param: image } 
+          name: Marconi Web Node
+          user_data_format: RAW
+          config_drive: "true"
+          user_data: |
+            #!/bin/bash
+            export DEBIAN_FRONTEND=noninteractive
+            
+            # install firewall rules (iptables etc needed)
+            # TODO
+            
+            # install a few other packages that are needed
+            sudo apt-get update
+            sudo apt-get -y install git-core python-pip curl libpython-dev uwsgi memcached
+            
+            # start memcached
+            sudo service memcached start
+            
+            # install marconi application
+            cd /
+            git clone https://github.com/openstack/marconi.git
+            
+            mkdir /srv/marconi
+            echo "from keystoneclient.middleware import auth_token
+                  from marconi.transport.wsgi import app
+            
+                  app = auth_token.AuthProtocol(app.app, {})" > /srv/marconi/marconi_uwsgi.py
+            
+            echo "[uwsgi]
+                  http = 192.168.192.168:80
+                  daemonize = /var/log/marconi.log
+                  pidfile = /var/run/marconi.pid
+                  gevent = 2000
+                  gevent-monkey-patch = true
+                  listen = 1024
+                  enable-threads = true
+                  module = marconi_uwsgi:app
+                  workers = 4" > /srv/marconi/uwsgi.ini
+                  
+            # prepare marconi
+            cd /marconi
+            sudo pip install . -r ./requirements.txt --upgrade --log /tmp/marconi-pip.log
+            sudo pip install python-mimetype
+            sudo pip install -e .
+            
+            # copy the config files
+            cp /marconi/etc/marconi.conf.sample /etc/marconi.conf
+            cp /marconi/etc/logging.conf.sample /etc/logging.conf
+            
+            # modify the config files with correct settings
+            echo "[DEFAULT]
+                 # Show more verbose log output (sets INFO log level output)
+                 #verbose = False
+                 
+                 # Show debugging output in logs (sets DEBUG log level output)
+                 #debug = False
+                 
+                 # Sharding and admin mode configs
+                 sharding      = True
+                 admin_mode    = True
+                 
+                 # Log to this file!
+                 log_file = /var/log/marconi-queues.log
+                 debug    = False
+                 verbose  = False
+                 
+                 # This is taken care of in our custom app.py, so disable here
+                 ;auth_strategy = keystone
+                 
+                 [keystone_authtoken]
+                 admin_password = < admin password >
+                 admin_tenant_name = < admin tenant name >
+                 admin_user = < admin user >
+                 auth_host = < identity service host >
+                 auth_port = '443'
+                 auth_protocol = 'https'
+                 auth_uri = < identity service uri >
+                 auth_version = < auth version >
+                 token_cache_time = < token cache time >
+                 memcache_servers = 'localhost:11211'
+                 
+                 [oslo_cache]
+                 cache_backend = memcached
+                 memcache_servers = 'localhost:11211'
+                 
+                 [drivers]
+                 # Transport driver module (e.g., wsgi, zmq)
+                 transport = wsgi
+                 # Storage driver module (e.g., mongodb, sqlite)
+                 storage = mongodb
+                 
+                 [drivers:storage:mongodb]
+                 uri = mongodb://mydb0,mydb1,mydb2:27017/?replicaSet=catalog&w=2&readPreference=secondaryPreferred
+                 database = marconi
+                 partitions = 8
+                 
+                 # Maximum number of times to retry a failed operation. Currently
+                 # only used for retrying a message post.
+                 ;max_attempts = 1000
+                 
+                 # Maximum sleep interval between retries (actual sleep time
+                 # increases linearly according to number of attempts performed).
+                 ;max_retry_sleep = 0.1
+                 
+                 # Maximum jitter interval, to be added to the sleep interval, in
+                 # order to decrease probability that parallel requests will retry
+                 # at the same instant.
+                 ;max_retry_jitter = 0.005
+                 
+                 # Frequency of message garbage collections, in seconds
+                 ;gc_interval = 5 * 60
+                 
+                 # Threshold of number of expired messages to reach in a given
+                 # queue, before performing the GC. Useful for reducing frequent
+                 # locks on the DB for non-busy queues, or for worker queues
+                 # which process jobs quickly enough to keep the number of in-
+                 # flight messages low.
+                 #
+                 # Note: The higher this number, the larger the memory-mapped DB
+                 # files will be.
+                 ;gc_threshold = 1000
+                 
+                 [limits:transport]
+                 queue_paging_uplimit = 1000
+                 metadata_size_uplimit = 262144
+                 message_paging_uplimit = 10
+                 message_size_uplimit = 262144
+                 message_ttl_max = 1209600
+                 claim_ttl_max = 43200
+                 claim_grace_max = 43200
+                 
+                 [limits:storage]
+                 default_queue_paging = 10
+                 default_message_paging = 10" > /etc/marconi.conf
+            
+            # start marconi
+            /usr/bin/uwsgi --ini /srv/marconi/uwsgi.ini
+            
+  lb:
+    type: Rackspace::Cloud::LoadBalancer
+    properties:
+      name: Marconi Load Balancer
+      nodes:
+      - addresses: { get_attr: [web_nodes, accessIPv4]}
+        port: 80
+        condition: ENABLED
+      protocol: HTTP
+      port: 80
+      virtualIps:
+      - type: PUBLIC
+        ipVersion: IPV4
+outputs:
+  lb_public_ip:
+    description: The public IP address of the load balancer
+    value: { get_attr: [lb, PublicIp]}
