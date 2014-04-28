@@ -2,12 +2,15 @@ Example Usage
 =============
 
 Note - *this* Marconi Heat template is not deployment ready yet.
- - Servers spin up
- - MongoDB, Memcache, and Marconi Software is installed on to the servers
- - However, Servers are currently misconfigured
- - ReplicaSets are not yet configured
- - Marconi WSGI app is not configured to point to Mongo
- - There are likely security holes in the configuration currently, leaving your servers potentially vulnerable to hackers.
+ - Done -> Servers spin up
+ - Done -> MongoDB, Memcache, and Marconi Software is installed on to the servers
+ - TODO -> Servers are currently misconfigured
+ - TODO -> ReplicaSets are not yet configured
+ - TODO -> Marconi WSGI app is not configured to point to Mongo
+ - TODO -> There are likely security holes in the configuration currently, leaving your servers potentially vulnerable to hackers.
+
+Template generated using Marconi Installation Guide found here (as of Apr 28, 2014)
+ - https://github.com/openstack/marconi/blob/master/doc/source/installing.rst
 
 ```
 POST /v1/{{project_id}}/stacks HTTP/1.1
