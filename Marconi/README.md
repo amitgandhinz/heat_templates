@@ -1,6 +1,14 @@
 Example Usage
 =============
 
+Note - *this* Marconi Heat template is not deployment ready yet.
+ - Servers spin up
+ - MongoDB, Memcache, and Marconi Software is installed on to the servers
+ - However, Servers are currently misconfigured
+ - ReplicaSets are not yet configured
+ - Marconi WSGI app is not configured to point to Mongo
+ - There are likely security holes in the configuration currently, leaving your servers potentially vulnerable to hackers.
+
 ```
 POST /v1/{{project_id}}/stacks HTTP/1.1
 Host: ord.orchestration.api.rackspacecloud.com
