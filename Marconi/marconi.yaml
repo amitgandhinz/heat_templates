@@ -87,7 +87,7 @@ resources:
             # run mongo service
             sudo service mongod start
 
- mongo_primary:
+  mongo_primary:
     type: OS::Nova::Server
     depends_on: mongo_replicaset
     properties:
