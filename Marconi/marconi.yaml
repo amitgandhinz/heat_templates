@@ -15,7 +15,6 @@ parameters:
   replica_set_size:
     type: number
     description: Number of mongo replica nodes to use
-
   admin_password:
     type: string
     description: Keystone Admin Password
@@ -86,7 +85,6 @@ resources:
 
             # run mongo service
             sudo service mongod start
-
   mongo_primary:
     type: OS::Nova::Server
     depends_on: mongo_replicaset
@@ -140,7 +138,6 @@ resources:
 
           params:
           "%replica_ips%": { get_attr: [mongo_replicaset, accessIPv4] }
-
   web_nodes:
     type: OS::Heat::ResourceGroup
     depends_on: marconi_primary
@@ -307,7 +304,6 @@ resources:
             "%keystone_version%": { get_param: keystone_version }
             "%token_cache_time%": { get_param: token_cache_time }
             "%mongo_primary%" : { get_attr: [mongo_primary, accessIPv4]}
-
   lb:
     type: Rackspace::Cloud::LoadBalancer
     properties:
