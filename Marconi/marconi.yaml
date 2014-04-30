@@ -12,9 +12,9 @@ parameters:
   web_nodes_count:
     type: number
     description: Number of web heads to use
-  mongo_nodes_count:
+  replica_set_size:
     type: number
-    description: Number of mongo nodes to use
+    description: Number of mongo replica nodes to use
 
   admin_password:
     type: string
@@ -36,15 +36,13 @@ parameters:
     description: Keystone Version
   token_cache_time:
     type: number
-    description: Keystone Token Cache Time
-  
-
+    description: Keystone Token Cache time
 
 resources:
-  mongo_nodes:
+  mongo_replicaset:
     type: OS::Heat::ResourceGroup
     properties:
-      count: { get_param: mongo_nodes_count }
+      count: { get_param: replica_set_size }
       resource_def:
         type: OS::Nova::Server
         properties:
@@ -58,18 +56,23 @@ resources:
             export DEBIAN_FRONTEND=noninteractive
             
             # install firewall rules (iptables etc needed)
-            # TODO
-            
+            IPTABLES="$(which iptables)"
+              if [ "${IPTABLES}" ];then
+                ${IPTABLES} -I INPUT -m tcp -p tcp --dport 27017 -j ACCEPT
+                /sbin/service iptables save
+              fi
+
             # install mongodb
             sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
             echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
-            
+
             sudo apt-get update
             sudo apt-get -y install mongodb-org
-            
+
             mkdir /etc/sysconfig
-            
-            echo "logpath=/var/log/mongo/mongod.log
+
+            cat > "/etc/sysconfig/mongod"<<EOF
+            logpath=/var/log/mongo/mongod.log
             logappend=true
             fork = true
             dbpath=/var/lib/mongo
@@ -78,12 +81,69 @@ resources:
             nojournal = true
             profile = 1
             slowms = 200
-            oplogSize = 2048" > /etc/sysconfig/mongod
-            
+            oplogSize = 2048
+            EOF
+
             # run mongo service
             sudo service mongod start
+
+ mongo_primary:
+    type: OS::Nova::Server
+    depends_on: mongo_replicaset
+    properties:
+      flavor: { get_param: flavor }
+          image: { get_param: image }
+          name: Marconi Database Node
+          user_data_format: RAW
+          config_drive: "true"
+          user_data: |
+            #!/bin/bash
+            export DEBIAN_FRONTEND=noninteractive
+            
+            # install firewall rules (iptables etc needed)
+            IPTABLES="$(which iptables)"
+              if [ "${IPTABLES}" ];then
+                ${IPTABLES} -I INPUT -m tcp -p tcp --dport 27017 -j ACCEPT
+                /sbin/service iptables save
+              fi
+
+            # install mongodb
+            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+            echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
+
+            sudo apt-get update
+            sudo apt-get -y install mongodb-org
+
+            mkdir /etc/sysconfig
+
+            cat > "/etc/sysconfig/mongod"<<EOF
+            logpath=/var/log/mongo/mongod.log
+            logappend=true
+            fork = true
+            dbpath=/var/lib/mongo
+            pidfilepath = /var/run/mongodb/mongod.pid
+            replSet = catalog
+            nojournal = true
+            profile = 1
+            slowms = 200
+            oplogSize = 2048
+            EOF
+
+            # run mongo service
+            sudo service mongod start
+
+            # configure replica set nodes
+            mongo local --eval "printjson(rs.initiate())"
+            for i in $( %replica_ips% ); do
+              echo item: rs.add($i)
+            done
+
+            params:
+            "%replica_ips%": { get_attr: [mongo_replicaset, accessIPv4] }
+
   web_nodes:
     type: OS::Heat::ResourceGroup
+    depends_on: marconi_primary
     properties:
       count: { get_param: web_nodes_count }
       resource_def:
@@ -191,7 +251,7 @@ resources:
             storage = mongodb
 
             [drivers:storage:mongodb]
-            uri = mongodb://mydb0,mydb1,mydb2:27017/?replicaSet=catalog&w=2&readPreference=secondaryPreferred
+            uri = mongodb://%mongo_primary%:27017/?replicaSet=catalog&w=2&readPreference=secondaryPreferred
             database = marconi
             partitions = 8
 
@@ -246,6 +306,7 @@ resources:
             "%keystone_uri%": { get_param: keystone_uri }
             "%keystone_version%": { get_param: keystone_version }
             "%token_cache_time%": { get_param: token_cache_time }
+            "%mongo_primary%" : { get_attr: [mongo_primary, accessIPv4]}
 
   lb:
     type: Rackspace::Cloud::LoadBalancer

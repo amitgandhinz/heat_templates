@@ -29,7 +29,7 @@ X-Auth-User: {{username}}
       "image": "Ubuntu 14.04 LTS (Trusty Tahr)",
       "flavor": "1 GB Performance",
       "web_nodes_count": 2,
-      "mongo_nodes_count" 3,
+      "replica_set_size" 2,
       "admin_password": "test",
       "admin_tenant_name": "admin name",
       "admin_user": "admin user",
