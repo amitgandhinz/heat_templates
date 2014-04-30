@@ -87,11 +87,12 @@ resources:
             # run mongo service
             sudo service mongod start
 
+
   mongo_primary:
     type: OS::Nova::Server
     depends_on: mongo_replicaset
     properties:
-      flavor: { get_param: flavor }
+        flavor: { get_param: flavor }
         image: { get_param: image }
         name: Marconi Database Node
         user_data_format: RAW
