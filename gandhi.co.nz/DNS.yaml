@@ -14,6 +14,7 @@ resources:
     properties:
       name: { get_param: hostname }
       emailAddress: { get_param: email }
+      ttl: 301
       records:
       - name: { get_param: hostname }
         type: NS
