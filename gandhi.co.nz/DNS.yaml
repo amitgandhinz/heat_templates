@@ -15,7 +15,7 @@ resources:
       name: { get_param: hostname }
       emailAddress: { get_param: email }
       records:
-       - name: { get_param: hostname }
+      - name: { get_param: hostname }
         type: NS
         data: dns1.stabletransit.com
         ttl: 5
