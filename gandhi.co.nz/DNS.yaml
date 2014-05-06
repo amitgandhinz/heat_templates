@@ -38,7 +38,11 @@ resources:
         data: alt2.aspmx.l.google.com
         priority: 2
         ttl: 301
-      - name: {Fn::Join: [",", ["calendar", {get_param: hostname}]]}
+      - name:
+        - Fn::Join:
+          - ''
+          - 'calendar.'
+          - {get_param: hostname}
         type: CNAME
         data: ghs.google.com
         ttl: 301
