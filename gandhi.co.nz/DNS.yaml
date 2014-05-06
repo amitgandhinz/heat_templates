@@ -23,4 +23,18 @@ resources:
         type: NS
         data: dns2.stabletransit.com
         ttl: 301
-
+      - name: { get_param: hostname }
+        type: MX
+        data: aspmx.l.google.com
+        priority: 0
+        ttl: 301
+      - name: { get_param: hostname }
+        type: MX
+        data: alt1.aspmx.l.google.com
+        priority: 1
+        ttl: 301
+      - name: { get_param: hostname }
+        type: MX
+        data: alt2.aspmx.l.google.com
+        priority: 2
+        ttl: 301
