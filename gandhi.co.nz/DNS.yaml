@@ -50,15 +50,15 @@ resources:
         type: TXT
         data: k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDJ99N537Nav2FV1W422wzRwTkhyJLPlY3dPtAW4r5lhWTKpaopeghoXS5cIQ4DPxciNsDonB7+sT1Q9D57Y/Nh9pp3Bqc9UMvooqtmpinJmttZDqYRH1XDW69FULeCstGvwVTpfLAruVyok6Tnvr9IULJQdu40Fvf8uQV2tEO8qQIDAQAB
         ttl: 5
-      - name: calendar.{ get_param: hostname }
+      - name: calendar
         type: CNAME
         data: ghs.google.com
         ttl: 5
-      - name: docs.{ get_param: hostname }
+      - name: docs
         type: CNAME
         data: ghs.google.com
         ttl: 5
-      - name: mail.{ get_param: hostname }
+      - name: mail
         type: CNAME
         data: ghs.google.com
         ttl: 5
@@ -66,7 +66,7 @@ resources:
         type: A
         data: 166.78.34.26
         ttl: 5
-      - name: email.{ get_param: hostname }
+      - name: email
         type: CNAME
         data: mailgun.org
         ttl: 5
