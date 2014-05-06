@@ -41,8 +41,8 @@ resources:
       - name:
         - Fn::Join:
           - ''
-          - 'calendar.'
-          - {get_param: hostname}
+          - - 'calendar.'
+            - {get_param: hostname}
         type: CNAME
         data: ghs.google.com
         ttl: 301
