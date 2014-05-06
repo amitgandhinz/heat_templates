@@ -1,0 +1,84 @@
+heat_template_version: 2013-05-23
+
+parameters:
+  hostname:
+    type: string
+    description: Host name for DNS
+  email:
+    type: string
+    description: Admin Email Address
+
+resources:
+  dns: # You can name this whatever you prefer
+    type: "Rackspace::Cloud::DNS"
+    properties:
+      name: { get_param: hostname }
+      emailAddress: { get_param: email }
+      records:
+       - name: { get_param: hostname }
+        type: NS
+        data: dns1.stabletransit.com
+        ttl: 5
+      - name: { get_param: hostname }
+        type: NS
+        data: dns2.stabletransit.com
+        ttl: 5
+
+      - name: { get_param: hostname }
+        type: MX
+        data: aspmx.l.google.com
+        priority: 0
+        ttl: 5
+      - name: { get_param: hostname }
+        type: MX
+        data: alt1.aspmx.l.google.com
+        priority: 1
+        ttl: 5
+      - name: { get_param: hostname }
+        type: MX
+        data: alt2.aspmx.l.google.com
+        priority: 2
+        ttl: 5
+      - name: google._domainkey.{ get_param: hostname }
+        type: TXT
+        data: v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfqHVCEQkYx3OQ8Kz7D7occcPoUs7eRjy/RQvlO5dDrPdzMx
+        ttl: 5
+      - name: { get_param: hostname }
+        type: TXT
+        data: v=spf1 include:mailgun.org ~all
+        ttl: 5
+      - name: k1._domainkey.{ get_param: hostname }
+        type: TXT
+        data: k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDJ99N537Nav2FV1W422wzRwTkhyJLPlY3dPtAW4r5lhWTKpaopeghoXS5cIQ4DPxciNsDonB7+sT1Q9D57Y/Nh9pp3Bqc9UMvooqtmpinJmttZDqYRH1XDW69FULeCstGvwVTpfLAruVyok6Tnvr9IULJQdu40Fvf8uQV2tEO8qQIDAQAB
+        ttl: 5
+      - name: calendar.{ get_param: hostname }
+        type: CNAME
+        data: ghs.google.com
+        ttl: 5
+      - name: docs.{ get_param: hostname }
+        type: CNAME
+        data: ghs.google.com
+        ttl: 5
+      - name: mail.{ get_param: hostname }
+        type: CNAME
+        data: ghs.google.com
+        ttl: 5
+
+      - name: { get_param: hostname }
+        type: A
+        data: 166.78.34.26
+        ttl: 5
+      - name: email.{ get_param: hostname }
+        type: CNAME
+        data: mailgun.org
+        ttl: 5
+
+      - name: *.raxcdn.{ get_param: hostname }
+        type: CNAME
+        data: global.prod.fastly.net
+        ttl: 5
+      - name: www.{ get_param: hostname }
+        type: CNAME
+        data: { get_param: hostname }.raxcdn.gandhi.co.nz
+        ttl: 5
+
