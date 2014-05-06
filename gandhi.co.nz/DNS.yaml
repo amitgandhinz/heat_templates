@@ -9,7 +9,7 @@ parameters:
     description: Admin Email Address
 
 resources:
-  dns: # You can name this whatever you prefer
+  dns:
     type: "Rackspace::Cloud::DNS"
     properties:
       name: { get_param: hostname }
@@ -23,7 +23,6 @@ resources:
         type: NS
         data: dns2.stabletransit.com
         ttl: 5
-
       - name: { get_param: hostname }
         type: MX
         data: aspmx.l.google.com
@@ -63,7 +62,6 @@ resources:
         type: CNAME
         data: ghs.google.com
         ttl: 5
-
       - name: { get_param: hostname }
         type: A
         data: 166.78.34.26
@@ -72,7 +70,6 @@ resources:
         type: CNAME
         data: mailgun.org
         ttl: 5
-
       - name: *.raxcdn
         type: CNAME
         data: global.prod.fastly.net
