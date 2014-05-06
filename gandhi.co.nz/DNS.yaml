@@ -23,6 +23,7 @@ resources:
         type: NS
         data: dns2.stabletransit.com
         ttl: 301
+
       - name: { get_param: hostname }
         type: MX
         data: aspmx.l.google.com
@@ -38,7 +39,46 @@ resources:
         data: alt2.aspmx.l.google.com
         priority: 2
         ttl: 301
+
+      - name: { "Fn::Join" : ["", ["google._domainkey.", { "Ref" : "hostname" }]] }
+        type: TXT
+        data: v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCfqHVCEQkYx3OQ8Kz7D7occcPoUs7eRjy/RQvlO5dDrPdzMx
+        ttl: 301
+      - name: { "Fn::Join" : ["", ["k1._domainkey.", { "Ref" : "hostname" }]] }
+        type: TXT
+        data: k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDJ99N537Nav2FV1W422wzRwTkhyJLPlY3dPtAW4r5lhWTKpaopeghoXS5cIQ4DPxciNsDonB7+sT1Q9D57Y/Nh9pp3Bqc9UMvooqtmpinJmttZDqYRH1XDW69FULeCstGvwVTpfLAruVyok6Tnvr9IULJQdu40Fvf8uQV2tEO8qQIDAQAB
+        ttl: 301
       - name: { "Fn::Join" : ["", ["calendar.", { "Ref" : "hostname" }]] }
         type: CNAME
         data: ghs.google.com
+        ttl: 301
+      - name: { "Fn::Join" : ["", ["docs.", { "Ref" : "hostname" }]] }
+        type: CNAME
+        data: ghs.google.com
+        ttl: 301
+      - name: { "Fn::Join" : ["", ["mail.", { "Ref" : "hostname" }]] }
+        type: CNAME
+        data: ghs.google.com
+        ttl: 301
+
+      - name: { get_param: hostname }
+        type: A
+        data: 166.78.34.26
+        ttl: 301
+      - name: { "Fn::Join" : ["", ["email.", { "Ref" : "hostname" }]] }
+        type: CNAME
+        data: mailgun.org
+        ttl: 301
+      - name: { get_param: hostname }
+        type: TXT
+        data: v=spf1 include:mailgun.org ~all
+        ttl: 301
+
+      - name: { "Fn::Join" : ["", ["raxcdn.", { "Ref" : "hostname" }]] }
+        type: CNAME
+        data: global.prod.fastly.net
+        ttl: 301
+      - name: { "Fn::Join" : ["", ["www.", { "Ref" : "hostname" }]] }
+        type: CNAME
+        data: raxcdn.gandhi.co.nz
         ttl: 301
