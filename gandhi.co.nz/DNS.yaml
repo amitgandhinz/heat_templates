@@ -80,5 +80,5 @@ resources:
         ttl: 301
       - name: { "Fn::Join" : ["", ["www.", { "Ref" : "hostname" }]] }
         type: CNAME
-        data: { "Fn::Join" : ["", ["www.", { "Ref" : "hostname" }, ".cdn.", { "Ref" : "hostname"}}]] }
+        data: { "Fn::Join" : ["", ["www.", { "Ref" : "hostname" }, ".cdn.", { "Ref" : "hostname"}]] }
         ttl: 301
