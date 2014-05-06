@@ -74,11 +74,11 @@ resources:
         data: v=spf1 include:mailgun.org ~all
         ttl: 301
 
-      - name: { "Fn::Join" : ["", ["raxcdn.", { "Ref" : "hostname" }]] }
+      - name: { "Fn::Join" : ["", ["*.cdn.", { "Ref" : "hostname" }]] }
         type: CNAME
         data: global.prod.fastly.net
         ttl: 301
       - name: { "Fn::Join" : ["", ["www.", { "Ref" : "hostname" }]] }
         type: CNAME
-        data: raxcdn.gandhi.co.nz
+        data: { "Fn::Join" : ["", ["www.", { "Ref" : "hostname" }, ".cdn.", { "Ref" : "hostname"}}]] }
         ttl: 301
