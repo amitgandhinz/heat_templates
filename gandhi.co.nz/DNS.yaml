@@ -38,3 +38,15 @@ resources:
         data: alt2.aspmx.l.google.com
         priority: 2
         ttl: 301
+      - name: calendar
+        type: CNAME
+        data: ghs.google.com
+        ttl: 301
+      - name: docs
+        type: CNAME
+        data: ghs.google.com
+        ttl: 301
+      - name: mail
+        type: CNAME
+        data: ghs.google.com
+        ttl: 301
