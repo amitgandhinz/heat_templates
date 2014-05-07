@@ -178,9 +178,9 @@ resources:
             /usr/bin/uwsgi --ini /srv/cdn/uwsgi.ini
 
             params:
-            "%mongo_primary%" : { get_attr: [mongo_primary, accessIPv4]}
-            "%fastly_api_key%" : { get_param: fastly_api_key }
-            "%git_repo%" : { get_param: git_repo }
+            "%mongo_primary%": { get_attr: [mongo_primary, accessIPv4]}
+            "%fastly_api_key%": { get_param: fastly_api_key }
+            "%git_repo%": { get_param: git_repo }
   lb:
     type: Rackspace::Cloud::LoadBalancer
     properties:
