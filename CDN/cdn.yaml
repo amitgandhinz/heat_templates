@@ -194,15 +194,6 @@ resources:
       virtualIps:
       - type: PUBLIC
         ipVersion: IPV4
-  dns:
-    type: "Rackspace::Cloud::DNS"
-    properties:
-      name: gandhi.co.nz
-      records:
-      - name: cows-test.gandhi.co.nz
-        type: A
-        data: { get_attr: [lb, PublicIp]}
-        ttl: 301
 outputs:
   lb_public_ip:
     description: The public IP address of the load balancer
