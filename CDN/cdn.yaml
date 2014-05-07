@@ -80,6 +80,7 @@ resources:
             Fn::Join:
               - ''
               - - |-
+
                   #!/bin/bash
                   export DEBIAN_FRONTEND=noninteractive
 
@@ -92,14 +93,17 @@ resources:
                     fi
 
                 - |-
+
                   # install a few other packages that are needed
                   sudo apt-get update && apt-get -y install git-core python-pip curl libpython-dev uwsgi memcached
-                
+
                 - |-    
+
                   # start memcached
                   sudo service memcached start
-                
-                - |-    
+
+                - |-  
+
                   # install cdn application
                   cd /
                   git clone  
@@ -110,6 +114,7 @@ resources:
                   mkdir /srv/cdn
 
                 - |-
+
                   # wrap with keystone middleware
                   cat > /srv/cdn/cdn_uwsgi.py <<EOF
                   from keystoneclient.middleware import auth_token
@@ -140,11 +145,13 @@ resources:
                   sudo pip install -e .
 
                 - |-
+                  
                   # copy the config files
                   cp /cdn/etc/cdn.conf.sample /etc/cdn.conf
                   cp /cdn/etc/logging.conf.sample /etc/logging.conf
                 
                 - |-
+                  
                   # modify the config files with correct settings
                   cat > /etc/cdn.conf <<EOF
                   [DEFAULT]
@@ -193,13 +200,14 @@ resources:
                   apikey =  
                 - { get_param: fastly_api_key }
                 - |-
-                
+
                   EOF
 
                 - |-
 
                   # start cdn
                   /usr/bin/uwsgi --ini /srv/cdn/uwsgi.ini
+
   lb:
     type: Rackspace::Cloud::LoadBalancer
     properties:
