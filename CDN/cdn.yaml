@@ -186,12 +186,14 @@ resources:
                   uri = mongodb://
                 - { get_attr: [mongo_primary, accessIPv4] }
                 - |- 
+
                   database = cdn
 
                   [drivers:provider:fastly]
                   apikey =  
                 - { get_param: fastly_api_key }
                 - |-
+                
                   EOF
 
                 - |-
