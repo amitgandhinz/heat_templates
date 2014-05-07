@@ -103,7 +103,7 @@ resources:
                   # install cdn application
                   cd /
                   git clone
-                - {Ref: DBRootPassword}
+                - {Ref: git_repo}
 
                 - |-    
                   mkdir /srv/cdn
