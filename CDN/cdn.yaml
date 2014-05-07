@@ -102,10 +102,11 @@ resources:
                 - |-    
                   # install cdn application
                   cd /
-                  git clone
+                  git clone  
                 - {Ref: git_repo}
 
-                - |-    
+                - |-
+
                   mkdir /srv/cdn
 
                 - |-
@@ -117,6 +118,7 @@ resources:
                   EOF
 
                 - |-
+
                   cat > /srv/cdn/uwsgi.ini <<EOF
                   [uwsgi]
                   http = 192.168.192.168:80
@@ -129,13 +131,14 @@ resources:
                   module = cdn_uwsgi:app
                   workers = 4
                   EOF
-                
+
                 - |-
+
                   # prepare cdn
                   cd /cdn
                   sudo pip install . -r ./requirements.txt --upgrade --log /tmp/cdn.pip.log
                   sudo pip install -e .
-                
+
                 - |-
                   # copy the config files
                   cp /cdn/etc/cdn.conf.sample /etc/cdn.conf
@@ -186,12 +189,13 @@ resources:
                   database = cdn
 
                   [drivers:provider:fastly]
-                  apikey = 
+                  apikey =  
                 - { get_param: fastly_api_key }
                 - |-
                   EOF
 
                 - |-
+
                   # start cdn
                   /usr/bin/uwsgi --ini /srv/cdn/uwsgi.ini
   lb:
