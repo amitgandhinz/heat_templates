@@ -76,111 +76,123 @@ resources:
           name: cdn_api
           user_data_format: RAW
           config_drive: "true"
-          user_data: |
-            #!/bin/bash
-            export DEBIAN_FRONTEND=noninteractive
-            
-            # install firewall rules (iptables etc needed)
-            IPTABLES="$(which iptables)"
-              if [ "${IPTABLES}" ];then
-                ${IPTABLES} -I INPUT -m tcp -p tcp --dport 443 -j ACCEPT
-                ${IPTABLES} -I INPUT -m tcp -p tcp --dport 80 -j ACCEPT
-                /sbin/service iptables save
-              fi
-            
-            # install a few other packages that are needed
-            sudo apt-get update && apt-get -y install git-core python-pip curl libpython-dev uwsgi memcached
-            
-            # start memcached
-            sudo service memcached start
-            
-            # install cdn application
-            cd /
-            git clone %git_repo%
-            
-            mkdir /srv/cdn
+          user_data: 
+            Fn::Join:
+              - ''
+              - - |-
+                  #!/bin/bash
+                  export DEBIAN_FRONTEND=noninteractive
 
-            # wrap with keystone middleware
-            cat > /srv/cdn/cdn_uwsgi.py <<EOF
-            from keystoneclient.middleware import auth_token
-            from cdn.transport.wsgi import app
-            app = auth_token.AuthProtocol(app.app, {})
-            EOF
+                  # install firewall rules (iptables etc needed)
+                  IPTABLES="$(which iptables)"
+                    if [ "${IPTABLES}" ];then
+                      ${IPTABLES} -I INPUT -m tcp -p tcp --dport 443 -j ACCEPT
+                      ${IPTABLES} -I INPUT -m tcp -p tcp --dport 80 -j ACCEPT
+                      /sbin/service iptables save
+                    fi
 
-            cat > /srv/cdn/uwsgi.ini <<EOF
-            [uwsgi]
-            http = 192.168.192.168:80
-            daemonize = /var/log/cdn.log
-            pidfile = /var/run/cdn.pid
-            gevent = 2000
-            gevent-monkey-patch = true
-            listen = 1024
-            enable-threads = true
-            module = cdn_uwsgi:app
-            workers = 4
-            EOF
+                - |-
+                  # install a few other packages that are needed
+                  sudo apt-get update && apt-get -y install git-core python-pip curl libpython-dev uwsgi memcached
+                
+                - |-    
+                  # start memcached
+                  sudo service memcached start
+                
+                - |-    
+                  # install cdn application
+                  cd /
+                  git clone
+                - {Ref: DBRootPassword}
 
-            # prepare cdn
-            cd /cdn
-            sudo pip install . -r ./requirements.txt --upgrade --log /tmp/cdn.pip.log
-            sudo pip install -e .
+                - |-    
+                  mkdir /srv/cdn
 
-            # copy the config files
-            cp /cdn/etc/cdn.conf.sample /etc/cdn.conf
-            cp /cdn/etc/logging.conf.sample /etc/logging.conf
+                - |-
+                  # wrap with keystone middleware
+                  cat > /srv/cdn/cdn_uwsgi.py <<EOF
+                  from keystoneclient.middleware import auth_token
+                  from cdn.transport.wsgi import app
+                  app = auth_token.AuthProtocol(app.app, {})
+                  EOF
 
-            # modify the config files with correct settings
-            cat > /etc/cdn.conf <<EOF
-            [DEFAULT]
-            # By default, this should live in one of:
-            # ~/.cdn/cdn.conf
-            # /etc/cdn/cdn.conf
+                - |-
+                  cat > /srv/cdn/uwsgi.ini <<EOF
+                  [uwsgi]
+                  http = 192.168.192.168:80
+                  daemonize = /var/log/cdn.log
+                  pidfile = /var/run/cdn.pid
+                  gevent = 2000
+                  gevent-monkey-patch = true
+                  listen = 1024
+                  enable-threads = true
+                  module = cdn_uwsgi:app
+                  workers = 4
+                  EOF
+                
+                - |-
+                  # prepare cdn
+                  cd /cdn
+                  sudo pip install . -r ./requirements.txt --upgrade --log /tmp/cdn.pip.log
+                  sudo pip install -e .
+                
+                - |-
+                  # copy the config files
+                  cp /cdn/etc/cdn.conf.sample /etc/cdn.conf
+                  cp /cdn/etc/logging.conf.sample /etc/logging.conf
+                
+                - |-
+                  # modify the config files with correct settings
+                  cat > /etc/cdn.conf <<EOF
+                  [DEFAULT]
+                  # By default, this should live in one of:
+                  # ~/.cdn/cdn.conf
+                  # /etc/cdn/cdn.conf
 
-            [DEFAULT]
-            # Show more verbose log output (sets INFO log level output)
-            ;verbose = False
+                  [DEFAULT]
+                  # Show more verbose log output (sets INFO log level output)
+                  ;verbose = False
 
-            # Show debugging output in logs (sets DEBUG log level output)
-            ;debug = False
+                  # Show debugging output in logs (sets DEBUG log level output)
+                  ;debug = False
 
-            # Log to this file
-            log_file = /var/log/cdn.log
+                  # Log to this file
+                  log_file = /var/log/cdn.log
 
-            ;auth_strategy =
+                  ;auth_strategy =
 
-            # ================= Syslog Options ============================
+                  # ================= Syslog Options ============================
 
-            # Send logs to syslog (/dev/log) instead of to file specified
-            # by `log_file`
-            ;use_syslog = False
+                  # Send logs to syslog (/dev/log) instead of to file specified
+                  # by `log_file`
+                  ;use_syslog = False
 
-            # Facility to use. If unset defaults to LOG_USER.
-            ;syslog_log_facility = LOG_LOCAL0
+                  # Facility to use. If unset defaults to LOG_USER.
+                  ;syslog_log_facility = LOG_LOCAL0
 
-            # ================= Driver Options ============================
+                  # ================= Driver Options ============================
 
-            [drivers]
-            # Transport driver module (e.g., falcon, pecan)
-            transport = falcon
+                  [drivers]
+                  # Transport driver module (e.g., falcon, pecan)
+                  transport = falcon
 
-            # Storage driver module (e.g., mongodb, sqlite, cassandra)
-            storage = mongodb
+                  # Storage driver module (e.g., mongodb, sqlite, cassandra)
+                  storage = mongodb
 
-            [drivers:storage:mongodb]
-            uri = mongodb://%mongo_primary%
-            database = cdn
+                  [drivers:storage:mongodb]
+                  uri = mongodb://
+                - { get_attr: [mongo_primary, accessIPv4] }
+                - |- database = cdn
 
-            [drivers:provider:fastly]
-            apikey = %fastly_api_key%
-            EOF
+                  [drivers:provider:fastly]
+                  apikey = 
+                - { get_param: fastly_api_key }
+                - |-
+                  EOF
 
-            # start cdn
-            /usr/bin/uwsgi --ini /srv/cdn/uwsgi.ini
-
-            params:
-            "%mongo_primary%": { get_attr: [mongo_primary, accessIPv4]}
-            "%fastly_api_key%": { get_param: fastly_api_key }
-            "%git_repo%": { get_param: git_repo }
+                - |-
+                  # start cdn
+                  /usr/bin/uwsgi --ini /srv/cdn/uwsgi.ini
   lb:
     type: Rackspace::Cloud::LoadBalancer
     properties:
