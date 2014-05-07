@@ -182,7 +182,8 @@ resources:
                   [drivers:storage:mongodb]
                   uri = mongodb://
                 - { get_attr: [mongo_primary, accessIPv4] }
-                - |- database = cdn
+                - |- 
+                  database = cdn
 
                   [drivers:provider:fastly]
                   apikey = 
