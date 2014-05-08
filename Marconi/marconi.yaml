@@ -9,6 +9,9 @@ parameters:
   flavor:
     type: string
     description: Flavor to use for servers
+  web_nodes_count:
+    type: number
+    description: Number of web heads to use
 
 resources:
   mongo_primary:
@@ -16,14 +19,14 @@ resources:
     properties:
         flavor: { get_param: flavor }
         image: { get_param: image }
-        name: Marconi Database Node
+        name: marconi_mongo_001
         user_data_format: RAW
         config_drive: "true"
         user_data: |
           #!/bin/bash
           export DEBIAN_FRONTEND=noninteractive
           
-          # install firewall rules (iptables etc needed)
+          # install firewall rules
           IPTABLES="$(which iptables)"
             if [ "${IPTABLES}" ];then
               ${IPTABLES} -I INPUT -m tcp -p tcp --dport 27017 -j ACCEPT
@@ -54,3 +57,37 @@ resources:
 
           # run mongo service
           sudo service mongod start
+
+  web_nodes:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: { get_param: web_nodes_count }
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          flavor: { get_param: flavor }
+          image: { get_param: image }
+          name: marconi_api
+          user_data_format: RAW
+          config_drive: "true"
+          user_data:  |
+            #!/bin/bash
+            export DEBIAN_FRONTEND=noninteractive
+
+  lb:
+    type: Rackspace::Cloud::LoadBalancer
+    properties:
+      name: cdn_lb
+      nodes:
+      - addresses: { get_attr: [web_nodes, accessIPv4]}
+        port: 80
+        condition: ENABLED
+      protocol: HTTP
+      port: 80
+      virtualIps:
+      - type: PUBLIC
+        ipVersion: IPV4
+outputs:
+  lb_public_ip:
+    description: The public IP address of the load balancer
+    value: { get_attr: [lb, PublicIp]}

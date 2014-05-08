@@ -32,7 +32,7 @@ resources:
           #!/bin/bash
           export DEBIAN_FRONTEND=noninteractive
           
-          # install firewall rules (iptables etc needed)
+          # install firewall rules
           IPTABLES="$(which iptables)"
             if [ "${IPTABLES}" ];then
               ${IPTABLES} -I INPUT -m tcp -p tcp --dport 27017 -j ACCEPT
