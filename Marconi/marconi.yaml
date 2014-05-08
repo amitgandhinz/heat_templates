@@ -12,30 +12,6 @@ parameters:
   web_nodes_count:
     type: number
     description: Number of web heads to use
-  replica_set_size:
-    type: number
-    description: Number of mongo replica nodes to use
-  admin_password:
-    type: string
-    description: Keystone Admin Password
-  admin_tenant_name:
-    type: string
-    description: Keystone Admin Tenant
-  admin_user:
-    type: string
-    description: Keystone Admin User
-  admin_keystone_uri:
-    type: string
-    description: Keystone Admin URI
-  keystone_uri:
-    type: string
-    description: Keystone URI
-  keystone_version:
-    type: string
-    description: Keystone Version
-  token_cache_time:
-    type: number
-    description: Keystone Token Cache time
 
 resources:
   mongo_primary:
