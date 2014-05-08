@@ -186,7 +186,7 @@ resources:
                   admin_mode    = True
 
                   # Log to this file!
-                  log_file = /var/log/marconi-queues.log
+                  log_file = /var/log/marconi.log
                   debug    = False
                   verbose  = False
 
@@ -290,7 +290,7 @@ resources:
   lb:
     type: Rackspace::Cloud::LoadBalancer
     properties:
-      name: cdn_lb
+      name: marconi_lb
       nodes:
       - addresses: { get_attr: [web_nodes, accessIPv4]}
         port: 80
