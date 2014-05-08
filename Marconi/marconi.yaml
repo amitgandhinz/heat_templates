@@ -9,6 +9,9 @@ parameters:
   flavor:
     type: string
     description: Flavor to use for servers
+  web_nodes_count:
+    type: number
+    description: Number of web heads to use
 
 resources:
   web_nodes:
