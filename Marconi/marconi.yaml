@@ -38,53 +38,6 @@ parameters:
     description: Keystone Token Cache time
 
 resources:
-  mongo_replicaset:
-    type: OS::Heat::ResourceGroup
-    properties:
-      count: { get_param: replica_set_size }
-      resource_def:
-        type: OS::Nova::Server
-        properties:
-          flavor: { get_param: flavor }
-          image: { get_param: image }
-          name: Marconi Database Node
-          user_data_format: RAW
-          config_drive: "true"
-          user_data: |
-            #!/bin/bash
-            export DEBIAN_FRONTEND=noninteractive
-            
-            # install firewall rules (iptables etc needed)
-            IPTABLES="$(which iptables)"
-              if [ "${IPTABLES}" ];then
-                ${IPTABLES} -I INPUT -m tcp -p tcp --dport 27017 -j ACCEPT
-                /sbin/service iptables save
-              fi
-
-            # install mongodb
-            sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
-            echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
-
-            sudo apt-get update
-            sudo apt-get -y install mongodb-org
-
-            mkdir /etc/sysconfig
-
-            cat > "/etc/sysconfig/mongod"<<EOF
-            logpath=/var/log/mongo/mongod.log
-            logappend=true
-            fork = true
-            dbpath=/var/lib/mongo
-            pidfilepath = /var/run/mongodb/mongod.pid
-            replSet = catalog
-            nojournal = true
-            profile = 1
-            slowms = 200
-            oplogSize = 2048
-            EOF
-
-            # run mongo service
-            sudo service mongod start
   mongo_primary:
     type: OS::Nova::Server
     properties:
@@ -101,7 +54,7 @@ resources:
           IPTABLES="$(which iptables)"
             if [ "${IPTABLES}" ];then
               ${IPTABLES} -I INPUT -m tcp -p tcp --dport 27017 -j ACCEPT
-              /sbin/service iptables save
+              iptables-save
             fi
 
           # install mongodb
@@ -129,14 +82,6 @@ resources:
           # run mongo service
           sudo service mongod start
 
-          # configure replica set nodes
-          mongo local --eval "printjson(rs.initiate())"
-          for i in $( %replica_ips% ); do
-            echo item: rs.add($i)
-          done
-
-          params:
-          "%replica_ips%": { get_attr: [mongo_replicaset, accessIPv4] }
   web_nodes:
     type: OS::Heat::ResourceGroup
     properties:
