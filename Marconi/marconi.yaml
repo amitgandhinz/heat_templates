@@ -302,7 +302,7 @@ resources:
             "%keystone_uri%": { get_param: keystone_uri }
             "%keystone_version%": { get_param: keystone_version }
             "%token_cache_time%": { get_param: token_cache_time }
-            "%mongo_primary%" : { get_attr: [mongo_primary, accessIPv4]}
+            "%mongo_primary%" : { get_attr: [mongo_primary, accessIPv4] }
   lb:
     type: Rackspace::Cloud::LoadBalancer
     properties:
