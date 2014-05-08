@@ -1,6 +1,6 @@
 heat_template_version: 2013-05-23
 
-description: HOT template to deploy Marconi infrastructure
+description: HOT template to deploy CDN infrastructure
 
 parameters:
   image:
@@ -19,7 +19,7 @@ resources:
     properties:
         flavor: { get_param: flavor }
         image: { get_param: image }
-        name: marconi_mongo_001
+        name: cdn_mongo_001
         user_data_format: RAW
         config_drive: "true"
         user_data: |
@@ -30,7 +30,7 @@ resources:
           IPTABLES="$(which iptables)"
             if [ "${IPTABLES}" ];then
               ${IPTABLES} -I INPUT -m tcp -p tcp --dport 27017 -j ACCEPT
-              iptables-save
+              /sbin/service iptables save
             fi
 
           # install mongodb
@@ -67,7 +67,7 @@ resources:
         properties:
           flavor: { get_param: flavor }
           image: { get_param: image }
-          name: marconi_api
+          name: cdn_api
           user_data_format: RAW
           config_drive: "true"
           user_data: |
@@ -81,6 +81,7 @@ resources:
                 ${IPTABLES} -I INPUT -m tcp -p tcp --dport 80 -j ACCEPT
                 iptables-save
               fi
+
   lb:
     type: Rackspace::Cloud::LoadBalancer
     properties:
