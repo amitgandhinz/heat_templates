@@ -105,8 +105,6 @@ resources:
                 ${IPTABLES} -I INPUT -m tcp -p tcp --dport 80 -j ACCEPT
                 iptables-save
               fi
-
-
   lb:
     type: Rackspace::Cloud::LoadBalancer
     properties:
