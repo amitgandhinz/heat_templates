@@ -11,46 +11,40 @@ parameters:
     description: Flavor to use for servers
 
 resources:
-  mongo_primary:
-    type: OS::Nova::Server
+  web_nodes:
+    type: OS::Heat::ResourceGroup
     properties:
-        flavor: { get_param: flavor }
-        image: { get_param: image }
-        name: marconi_mongo_001
-        user_data_format: RAW
-        config_drive: "true"
-        user_data: |
-          #!/bin/bash
-          export DEBIAN_FRONTEND=noninteractive
-          
-          # install firewall rules
-          IPTABLES="$(which iptables)"
-            if [ "${IPTABLES}" ];then
-              ${IPTABLES} -I INPUT -m tcp -p tcp --dport 27017 -j ACCEPT
-              /sbin/service iptables save
-            fi
+      count: { get_param: web_nodes_count }
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          flavor: { get_param: flavor }
+          image: { get_param: image }
+          name: cdn_api
+          user_data_format: RAW
+          config_drive: "true"
+          user_data: 
+            Fn::Join:
+              - ''
+              - - |-
 
-          # install mongodb
-          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
-          echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/mongodb.list
+                  #!/bin/bash
+                  export DEBIAN_FRONTEND=noninteractive
 
-          sudo apt-get update
-          sudo apt-get -y install mongodb-org
-
-          mkdir /etc/sysconfig
-
-          cat > "/etc/sysconfig/mongod"<<EOF
-          logpath=/var/log/mongo/mongod.log
-          logappend=true
-          fork = true
-          dbpath=/var/lib/mongo
-          pidfilepath = /var/run/mongodb/mongod.pid
-          replSet = catalog
-          nojournal = true
-          profile = 1
-          slowms = 200
-          oplogSize = 2048
-          EOF
-
-          # run mongo service
-          sudo service mongod start
+  lb:
+    type: Rackspace::Cloud::LoadBalancer
+    properties:
+      name: cdn_lb
+      nodes:
+      - addresses: { get_attr: [web_nodes, accessIPv4]}
+        port: 80
+        condition: ENABLED
+      protocol: HTTP
+      port: 80
+      virtualIps:
+      - type: PUBLIC
+        ipVersion: IPV4
+outputs:
+  lb_public_ip:
+    description: The public IP address of the load balancer
+    value: { get_attr: [lb, PublicIp]}
