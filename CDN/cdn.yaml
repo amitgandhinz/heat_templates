@@ -87,10 +87,13 @@ resources:
                   # install firewall rules (iptables etc needed)
                   IPTABLES="$(which iptables)"
                     if [ "${IPTABLES}" ];then
-                      ${IPTABLES} -I INPUT -m tcp -p tcp --dport 443 -j ACCEPT
-                      ${IPTABLES} -I INPUT -m tcp -p tcp --dport 80 -j ACCEPT
-                      /sbin/service iptables save
+                      ${IPTABLES} -I INPUT 1 -p tcp  --dport 22 -j ACCEPT
+                      ${IPTABLES} -I INPUT 1 -p tcp --dport 80 -j ACCEPT
+                      ${IPTABLES} -I INPUT 1 -p tcp --dport 443 -j ACCEPT
+                      iptables-save > /etc/iptables.rules
                     fi
+
+                  service ssh restart
 
                 - |-
 
@@ -115,7 +118,7 @@ resources:
 
                 - |-
 
-                  # wrap with keystone middleware
+                  # wrap application with keystone middleware
                   cat > /srv/cdn/cdn_uwsgi.py <<EOF
                   from keystoneclient.middleware import auth_token
                   from cdn.transport.wsgi import app
@@ -147,8 +150,8 @@ resources:
                 - |-
                   
                   # copy the config files
-                  cp /cdn/etc/cdn.conf.sample /etc/cdn.conf
-                  cp /cdn/etc/logging.conf.sample /etc/logging.conf
+                  cp /cdn/etc/cdn.conf /etc/cdn.conf
+                  cp /cdn/etc/logging.conf /etc/logging.conf
                 
                 - |-
                   

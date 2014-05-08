@@ -157,7 +157,8 @@ resources:
             IPTABLES="$(which iptables)"
               if [ "${IPTABLES}" ];then
                 ${IPTABLES} -I INPUT -m tcp -p tcp --dport 443 -j ACCEPT
-                /sbin/service iptables save
+                ${IPTABLES} -I INPUT -m tcp -p tcp --dport 80 -j ACCEPT
+                iptables-save
               fi
             
             # install a few other packages that are needed
